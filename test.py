@@ -8,8 +8,10 @@ from pyspark.mllib.linalg.distributed import CoordinateMatrix, MatrixEntry
 
 sys.path.insert(1, './utils')
 sys.path.insert(1, './initializers')
+sys.path.insert(1, './epi_models')
 from SparseDistributedMatrix import SparseDistributedMatrix
 from Initializer101 import Initializer101
+from Simple_SIR import Simple_SIR
 
 
 
@@ -27,7 +29,12 @@ sqlc = SQLContext(sc)
 # r = o.dot(a).entries.collect()
 # print(r)
 
-init = Initializer101(spark, 20,5)
-df = init.initialize_vertices()
-df.show()
-init.initialize_edges(df).show()
+# init = Initializer101(spark, 20,5)
+# df = init.initialize_vertices()
+# df.show()
+# init.initialize_edges(df).show()
+
+
+sir = Simple_SIR()
+sir.run()
+print(sir.next_sotw())
