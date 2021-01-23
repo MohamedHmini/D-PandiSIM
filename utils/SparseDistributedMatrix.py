@@ -63,17 +63,22 @@ class SparseDistributedMatrix(CoordinateMatrix):
         
         return SparseDistributedMatrix(self.sc, c, self.numRows(), self.numCols())
     
-        
     def diag(vect):
         c = vect.map(
             lambda entry : MatrixEntry(vect.j,vect.j,vect.value)
         ) 
         return SparseDistributedMatrix(sc, c, vect.numCols(), vect.numCols())
     
-    def ones(sc, size:int):
-        c = SparseDistributedMatrix(sc, sc.parallelize([MatrixEntry(0,i,1) for i in range(size)]), 1, size)
-        return c
+    # def ones(sc, size:int):
+    #     c = SparseDistributedMatrix(sc, sc.parallelize([MatrixEntry(0,i,1) for i in range(size)]), 1, size)
+    #     return c
     
     def size(self):
         return (self.numRows(), self.numCols())
     
+    def fromDF(self, df):
+        pass
+
+    def toDF(self):
+        pass
+
