@@ -39,6 +39,8 @@ class SparseDistributedVector():
         
         c = a.map(
             lambda x: (x[0], x[1].dot(sv))
+        ).filter(
+            lambda entry: entry[1] != 0.0
         )
         return SparseDistributedVector(self.sc, c, S.numCols())
                 
@@ -54,7 +56,9 @@ class SparseDistributedVector():
     
     def outer(self, v):
         c = self.rdd.cartesian(v.rdd).map(
-            lambda x: MatrixEntry(x[0][0], x[1][0], float(x[0][0]*x[1][0]))
+            lambda x: MatrixEntry(x[0][0], x[1][0], float(x[0][1]*x[1][1]))
+        ).filter(
+            lambda entry: entry.value != 0.0
         )
         return sdm.SparseDistributedMatrix(self.sc, c, self.size, v.size)
     
@@ -65,6 +69,12 @@ class SparseDistributedVector():
             lambda x,y: x+y if op == 'add' else x-y
         )
         return SparseDistributedVector(self.sc, c, self.size)
+    
+    def apply(self, func):
+        rdd = self.rdd.map(
+            lambda entry: (entry[0], func(entry[1]))
+        )
+        return SparseDistributedVector(self.sc, rdd, self.size)
     
     def repeat(sc, spark, val, size):
         v = spark.range(0,size,1).rdd.map(

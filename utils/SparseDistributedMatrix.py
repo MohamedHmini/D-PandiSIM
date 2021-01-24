@@ -21,12 +21,12 @@ class SparseDistributedMatrix(CoordinateMatrix):
             lambda entry: (entry.i, (entry.j, entry.value)) if by == 'row' else (entry.j, (entry.i, entry.value))
         ).groupByKey() \
         .map(
-            lambda x: (x[0], Vectors.sparse(size, *list(zip(*x[1].data))))
+            lambda x: (x[0], Vectors.sparse(size, *list(zip(*sorted(x[1].data, key = lambda x: x[0])))))
         )
         return a
 
     def dot(self, arg):
-        if type(arg) == SparseDistributedMatrix:
+        if isinstance(arg,SparseDistributedMatrix):
             return self._dot1(arg)
         elif type(arg) == sdv.SparseDistributedVector:
             return self._dot2(arg)
@@ -40,6 +40,8 @@ class SparseDistributedMatrix(CoordinateMatrix):
         
         c = a.cartesian(b).map(
             lambda x: MatrixEntry(x[0][0], x[1][0], x[0][1].dot(x[1][1]))
+        ).filter(
+            lambda entry: entry.value != 0.0
         )
             
         return SparseDistributedMatrix(self.sc, c, self.numRows(), B.numCols())
@@ -52,7 +54,10 @@ class SparseDistributedMatrix(CoordinateMatrix):
         
         c = a.map(
             lambda x: (x[0], x[1].dot(sv))
+        ).filter(
+            lambda entry: entry[1] != 0.0
         )
+
         return sdv.SparseDistributedVector(self.sc, c, self.numRows())
 
     
@@ -85,13 +90,13 @@ class SparseDistributedMatrix(CoordinateMatrix):
         return a,b
         
     
-    # def multiply(self, B):
-    #     a,b = _pre_arithmetic_op(self, B)
-    #     c = a.union(b).groupByKey().map(
-    #         lambda x : MatrixEntry(x[0][0],x[0][1], x[1].data[0] * x[1].data[1] if len(x[1].data) == 2 else x[1].data[0]) 
-    #     )
+    def multiply(self, B):
+        a,b = self._pre_arithmetic_op(self, B)
+        c = a.union(b).groupByKey().map(
+            lambda x : MatrixEntry(x[0][0],x[0][1], x[1].data[0] * x[1].data[1] if len(x[1].data) == 2 else 0) 
+        )
         
-    #     return SparseDistributedMatrix(self.sc, c, self.numRows(), self.numCols())
+        return SparseDistributedMatrix(self.sc, c, self.numRows(), self.numCols())
     
     # def multiply(self, b:float):
     #     c = self.entries.map(
