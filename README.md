@@ -1,1 +1,1 @@
-# D-PnadiSIM : Distributed Pandemics Simulator
+# D-PandiSIM : Distributed Pandemics Simulator
