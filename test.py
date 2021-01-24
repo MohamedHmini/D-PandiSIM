@@ -10,6 +10,7 @@ sys.path.insert(1, './utils')
 sys.path.insert(1, './initializers')
 sys.path.insert(1, './epi_models')
 from SparseDistributedMatrix import SparseDistributedMatrix
+from SparseDistributedVector import SparseDistributedVector
 from Initializer101 import Initializer101
 from Simple_SIR import Simple_SIR
 
@@ -35,6 +36,25 @@ sqlc = SQLContext(sc)
 # init.initialize_edges(df).show()
 
 
-sir = Simple_SIR()
-sir.run()
-print(sir.next_sotw())
+# sir = Simple_SIR()
+# sir.run()
+# print(sir.next_sotw())
+
+u = SparseDistributedVector(sc, sc.parallelize([(0, 1), (1, 2), (2, 3)]), 3)
+v = SparseDistributedVector(sc, sc.parallelize([(0, 1), (1, 2), (2, 3)]), 3)
+a = SparseDistributedMatrix(sc, sc.parallelize([MatrixEntry(0, 1, 1.2),MatrixEntry(1, 0, 2.1),MatrixEntry(0, 2, 4)], 4), 3, 3)
+
+s = SparseDistributedVector(sc, sc.parallelize([(0, 1), (2, 3)]), 3)
+ones = SparseDistributedVector.repeat(sc, spark, 1, 4)
+twos = SparseDistributedVector.repeat(sc, spark, 2, 4)
+eye = SparseDistributedMatrix.diag(sc, ones)
+
+print(eye.dot(twos).rdd.collect())
+
+
+# print(u.dot(a).rdd.collect())
+# print(a.dot(u).rdd.collect())
+# print(v.dot(u))
+# print(v.outer(u).entries.collect())
+# print(u.op(v).rdd.collect())
+
