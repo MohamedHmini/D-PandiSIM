@@ -21,6 +21,10 @@ class PandiNetwork(sdi.SparkDependencyInjection):
         self.nbr_vertices = nbr_vertices
         self.nbr_edges = nbr_edges
 
+
+    def toVertices(self, sdv):
+        return sdv.rdd.toDF(['id', 'score'])
+
     # returns the nodes' scores vector
     def verticesToSDV(self, cond):
         df = self.vertices.filter(cond)

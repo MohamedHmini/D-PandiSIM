@@ -40,7 +40,7 @@ class SparseDistributedVector(sdi.SparkDependencyInjection):
         a = self._pre_dot(S)
         
         c = a.map(
-            lambda x: (x[0], x[1].dot(sv))
+            lambda x: (x[0], float(x[1].dot(sv)))
         ).filter(
             lambda entry: entry[1] != 0.0
         )
@@ -50,9 +50,9 @@ class SparseDistributedVector(sdi.SparkDependencyInjection):
         if self.size != v.size:
             raise Exception(f"size mismatch ({self.size},) and ({v.size},)")
         c = self.rdd.union(v.rdd).reduceByKey(
-            lambda x,y: x*y
+            lambda x,y: float(x*y)
         ).map(lambda x: x[1]).reduce(
-            lambda x,y: x+y
+            lambda x,y: float(x+y)
         )
         return c
     
@@ -68,19 +68,19 @@ class SparseDistributedVector(sdi.SparkDependencyInjection):
         if self.size != v.size:
             raise Exception(f"size mismatch ({self.size},) and ({v.size},)")
         c = self.rdd.union(v.rdd).reduceByKey(
-            lambda x,y: x+y if op == 'add' else x-y
+            lambda x,y: float(x+y) if op == 'add' else float(x-y)
         )
         return SparseDistributedVector(c, self.size)
     
     def apply(self, func):
         rdd = self.rdd.map(
-            lambda entry: (entry[0], func(entry[1]))
+            lambda entry: (entry[0], float(func(entry[1])))
         )
         return SparseDistributedVector(rdd, self.size)
     
     def repeat(val, size):
         v = SparseDistributedVector.spark.range(0,size,1).rdd.map(
-            lambda x: (x.id, val)
+            lambda x: (x.id, float(val))
         )
         return SparseDistributedVector(v, size)
 
