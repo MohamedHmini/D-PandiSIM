@@ -3,18 +3,28 @@ from pyspark.mllib.linalg.distributed import CoordinateMatrix, MatrixEntry
 from pyspark.mllib.linalg import distributed as D
 import SparseDistributedVector as sdv
 
+import sys
+sys.path.insert(1, './utils/..')
+import SparkDependencyInjection as sdi
 
 
-class SparseDistributedMatrix(CoordinateMatrix):
-    def __init__(self, sc, entries, numRows=0, numCols=0):
-        self.sc = sc
-        super().__init__(entries, numRows, numCols)
+class SparseDistributedMatrix(sdi.SparkDependencyInjection):
+    def __init__(self, entries, numRows=0, numCols=0):
+        self.entries = entries
+        self.rows = numRows
+        self.cols = numCols
+        super(SparseDistributedMatrix, self).__init__()
+
+    def numRows(self):
+        return self.rows
+    def numCols(self):
+        return self.cols
     
     def transpose(self):
         entries = self.entries.map(
             lambda entry: MatrixEntry(entry.j, entry.i, entry.value)
         )
-        return SparseDistributedMatrix(self.sc, entries, self.numCols(), self.numRows())
+        return SparseDistributedMatrix(entries, self.numCols(), self.numRows())
     
     def _pre_dot(self, A, by = 'row', size = 0):
         a = A.entries.map(
@@ -44,7 +54,7 @@ class SparseDistributedMatrix(CoordinateMatrix):
             lambda entry: entry.value != 0.0
         )
             
-        return SparseDistributedMatrix(self.sc, c, self.numRows(), B.numCols())
+        return SparseDistributedMatrix(c, self.numRows(), B.numCols())
 
     def _dot2(self,v):
         if self.numCols() != v.size:
@@ -58,14 +68,14 @@ class SparseDistributedMatrix(CoordinateMatrix):
             lambda entry: entry[1] != 0.0
         )
 
-        return sdv.SparseDistributedVector(self.sc, c, self.numRows())
+        return sdv.SparseDistributedVector(c, self.numRows())
 
     
-    def diag(sc, vect):
+    def diag(vect):
         c = vect.rdd.map(
             lambda entry : MatrixEntry(entry[0], entry[0], entry[1])
         ) 
-        return SparseDistributedMatrix(sc, c, vect.size, vect.size)
+        return SparseDistributedMatrix(c, vect.size, vect.size)
     
     # def ones(sc, size:int):
     #     c = SparseDistributedMatrix(sc, sc.parallelize([MatrixEntry(0,i,1) for i in range(size)]), 1, size)
@@ -96,7 +106,7 @@ class SparseDistributedMatrix(CoordinateMatrix):
             lambda x : MatrixEntry(x[0][0],x[0][1], x[1].data[0] * x[1].data[1] if len(x[1].data) == 2 else 0) 
         )
         
-        return SparseDistributedMatrix(self.sc, c, self.numRows(), self.numCols())
+        return SparseDistributedMatrix(c, self.numRows(), self.numCols())
     
     # def multiply(self, b:float):
     #     c = self.entries.map(

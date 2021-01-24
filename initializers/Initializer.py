@@ -1,12 +1,13 @@
 import abc
 
+import sys
+sys.path.insert(1, '..')
+import SparkDependencyInjection as sdi
 
 
+class Initializer(sdi.SparkDependencyInjection, metaclass = abc.ABCMeta):
 
-class Initializer(metaclass = abc.ABCMeta):
-
-    def __init__(self, spark, nbr_vertices, nbr_edges, prob_infection = 0.65):
-        self.spark = spark
+    def __init__(self, nbr_vertices, nbr_edges, prob_infection = 0.65):
         self.nbr_vertices = nbr_vertices
         self.nbr_edges = nbr_edges
         self.prob_infection = prob_infection

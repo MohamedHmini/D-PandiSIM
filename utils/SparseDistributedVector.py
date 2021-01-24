@@ -4,13 +4,15 @@ from pyspark.mllib.linalg import distributed as D
 import SparseDistributedMatrix as sdm
 
 
+import sys
+sys.path.insert(1, './utils/..')
+import SparkDependencyInjection as sdi
 
 
-class SparseDistributedVector():
+class SparseDistributedVector(sdi.SparkDependencyInjection):
 
     # default shape of the vector is (N by 1)
-    def __init__(self, sc, rdd, size, transposed = False):
-        self.sc = sc
+    def __init__(self, rdd, size, transposed = False):
         self.rdd = rdd
         self.size = size
         self.transposed = transposed
@@ -42,7 +44,7 @@ class SparseDistributedVector():
         ).filter(
             lambda entry: entry[1] != 0.0
         )
-        return SparseDistributedVector(self.sc, c, S.numCols())
+        return SparseDistributedVector(c, S.numCols())
                 
     def _dot2(self, v):
         if self.size != v.size:
@@ -60,7 +62,7 @@ class SparseDistributedVector():
         ).filter(
             lambda entry: entry.value != 0.0
         )
-        return sdm.SparseDistributedMatrix(self.sc, c, self.size, v.size)
+        return sdm.SparseDistributedMatrix(c, self.size, v.size)
     
     def op(self, v, op = 'add'):
         if self.size != v.size:
@@ -68,19 +70,19 @@ class SparseDistributedVector():
         c = self.rdd.union(v.rdd).reduceByKey(
             lambda x,y: x+y if op == 'add' else x-y
         )
-        return SparseDistributedVector(self.sc, c, self.size)
+        return SparseDistributedVector(c, self.size)
     
     def apply(self, func):
         rdd = self.rdd.map(
             lambda entry: (entry[0], func(entry[1]))
         )
-        return SparseDistributedVector(self.sc, rdd, self.size)
+        return SparseDistributedVector(rdd, self.size)
     
-    def repeat(sc, spark, val, size):
-        v = spark.range(0,size,1).rdd.map(
+    def repeat(val, size):
+        v = SparseDistributedVector.spark.range(0,size,1).rdd.map(
             lambda x: (x.id, val)
         )
-        return SparseDistributedVector(sc, v, size)
+        return SparseDistributedVector(v, size)
 
     def toSV(self):
         indices = self.rdd.map(lambda x: x[0]).collect()
