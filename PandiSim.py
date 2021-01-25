@@ -8,7 +8,6 @@
 
 
 
-
 class PandiSim():
 
     def __init__(self, network, epi_model, scoring_model, edge_model, params):
