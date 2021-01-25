@@ -5,7 +5,6 @@ import SparseDistributedMatrix as sdm
 
 
 import sys
-sys.path.insert(1, './utils/..')
 import SparkDependencyInjection as sdi
 
 

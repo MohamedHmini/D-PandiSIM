@@ -10,11 +10,13 @@ sys.path.insert(1, './utils')
 sys.path.insert(1, './initializers')
 sys.path.insert(1, './epi_models')
 sys.path.insert(1, './scoring_models')
+sys.path.insert(1, './edge_estimation_models')
 from SparseDistributedMatrix import SparseDistributedMatrix
 from SparseDistributedVector import SparseDistributedVector
 from Initializer101 import Initializer101
 from Simple_SIR import Simple_SIR
 import ScoringWalker as sw
+import StochasticEdgeEstimator as see
 
 sys.path.insert(1, '.')
 import SparkDependencyInjection as sdi
@@ -92,31 +94,21 @@ sdi.SparkDependencyInjection.set_spark(spark).set_spark_context(sc)
 # r = P.transpose().dot(r)
 # r = P.transpose().dot(r)
 # r = P.transpose().dot(r)
-# r = P.transpose().dot(r)
-# r = P.transpose().dot(r)
-# r = P.transpose().dot(r)
-# r = P.transpose().dot(r)
-# r = P.transpose().dot(r)
-# r = P.transpose().dot(r)
-# r = P.transpose().dot(r)
-# r = P.transpose().dot(r)
-# r = P.transpose().dot(r)
-# r = P.transpose().dot(r)
-# r = P.transpose().dot(r)
-# r = P.transpose().dot(r)
-# r = P.transpose().dot(r)
 
 # ns = v.apply(lambda x: 1 - x).dot(SparseDistributedMatrix.diag(sc, r))
 
 # print(v.rdd.collect())
 # print(v.op(ns, 'add').rdd.collect())
 
-init = Initializer101(6,3)
+init = Initializer101(10,2)
 init.initialize_vertices()
 init.initialize_edges(init.vertices)
-network = pn.PandiNetwork(init.vertices, init.edges, 6, 3)
+network = pn.PandiNetwork(init.vertices, init.edges, 6, 2)
 
-walker = sw.ScoringWalker(network, params = {'alpha-scaler':-2, 'walker-steps':3})
-walker.run()
+# walker = sw.ScoringWalker(network, params = {'alpha-scaler':-2, 'walker-steps':3})
+# walker.run()
 # print(walker.sotw_scores.rdd.collect())
-walker.annotate()
+# walker.annotate()
+
+edge_est = see.StochasticEdgeEstimator(network)
+edge_est.run()

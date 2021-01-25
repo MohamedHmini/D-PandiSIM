@@ -4,7 +4,6 @@ from pyspark.mllib.linalg import distributed as D
 import SparseDistributedVector as sdv
 
 import sys
-sys.path.insert(1, './utils/..')
 import SparkDependencyInjection as sdi
 
 
