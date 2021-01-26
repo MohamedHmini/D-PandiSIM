@@ -2,6 +2,7 @@ import pyspark.sql.types as T
 import pyspark.sql.functions as F
 import numpy as np
 from pyspark.sql.window import Window
+from pyspark import StorageLevel
 
 import sys
 sys.path.insert(1, '../utils')
@@ -16,7 +17,7 @@ class StochasticEdgeEstimator(ee.EDGE_estimator):
     def run(self):
         diff1 = self.network.vertices.select('id').exceptAll(self.network.edges.select('src'))
         diff2 = self.network.vertices.select('id').exceptAll(self.network.edges.select('dst'))
-        diff = diff1.intersect(diff2).withColumn('row', F.row_number().over(Window.orderBy(F.monotonically_increasing_id())))
+        diff = diff1.intersect(diff2).withColumn('row', F.row_number().over(Window.orderBy(F.monotonically_increasing_id()))).persist(StorageLevel.MEMORY_AND_DISK)
         src = diff.alias('src').withColumnRenamed('id', 'src')
         dst = diff.alias('dst').withColumnRenamed('id', 'dst')
         noedges = src.join(dst, F.col("src.row") < F.col("dst.row")).select(src.src, dst.dst)
@@ -24,7 +25,7 @@ class StochasticEdgeEstimator(ee.EDGE_estimator):
         beta = F.udf(lambda x: float(np.random.binomial(1, np.random.beta(a,b))))
         newedges = noedges.withColumn("edge", beta(F.col('src'))).filter("edge == 1.0").select('src', 'dst')
     
-        self.network.edges = newedges.union(self.network.edges)
+        self.network.edges = newedges.union(self.network.edges).persist(StorageLevel.MEMORY_AND_DISK)
 
     def annotate(self):
         pass

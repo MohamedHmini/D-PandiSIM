@@ -15,7 +15,7 @@ class Simple_SIR(EPI_model):
     def __init__(
         self, 
         inits = {'S':0.9, 'I':0.1, 'R':0}, 
-        params = {'beta':0.1, 'gamma':0.1, 'N':1, 't_end':100, 'step_size':1}
+        params = {'beta':0.1, 'gamma':0.1, 'N':10, 't_end':100, 'step_size':1}
     ):
         super().__init__("Simple SIR", inits, params)
     
@@ -32,9 +32,12 @@ class Simple_SIR(EPI_model):
         INPUT = tuple(self.inits.values())
         t_range = np.arange(0, self.params['t_end'] + self.params['step_size'], self.params['step_size'])
         self.all_sotw = spi.odeint(self.diff_eqs,INPUT, t_range)
+        self.all_sotw = np.round(self.params['N']*self.all_sotw)
+        self.dr = (-np.vstack(([self.params['N'],0,0], self.all_sotw[:-1,:])) + self.all_sotw)[:,1:]
+        self.dr[self.dr < 0] = 0
         
     def current_sotw(self):
-        return self.all_sotw[self.step]
+        return self.all_sotw[self.step], self.dr[self.step]
     
     def next_sotw(self):
         self.step += 1
@@ -43,7 +46,7 @@ class Simple_SIR(EPI_model):
     def previous_sotw(self):
         self.step -= 1
         return self.current_sotw()
-    
+
     def _interact(self, beta, gamma, S, I, R):
         params = self.params
         params['beta'], params['gamma'] = beta, gamma

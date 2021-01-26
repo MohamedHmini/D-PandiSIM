@@ -1,4 +1,5 @@
 from pyspark.sql import SparkSession, SQLContext
+from pyspark import SparkConf
 import pyspark.sql.types as T
 import pyspark.sql.functions as F
 import numpy as np
@@ -14,18 +15,20 @@ sys.path.insert(1, './edge_estimation_models')
 from SparseDistributedMatrix import SparseDistributedMatrix
 from SparseDistributedVector import SparseDistributedVector
 from Initializer101 import Initializer101
-from Simple_SIR import Simple_SIR
+import Simple_SIR as ssir
 import ScoringWalker as sw
 import StochasticEdgeEstimator as see
 
 sys.path.insert(1, '.')
 import SparkDependencyInjection as sdi
 import PandiNetwork as pn
+import PandiSim as ps
 
 # os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages graphframes:graphframes:0.8.0-spark3.0-s_2.12 pyspark-shell'
 
 
-spark = SparkSession.builder.master('local').getOrCreate()
+spark = SparkSession.builder.master('local').config(key = "spark.default.parallelism", value = 2).getOrCreate()
+# conf=SparkConf.set("spark.default.parallelism", 4)
 sc = spark.sparkContext
 sc.setCheckpointDir("hdfs://namenode:9000/rddch")
 sqlc = SQLContext(sc)
@@ -62,9 +65,9 @@ sdi.SparkDependencyInjection.set_spark(spark).set_spark_context(sc)
 
 # print(eye.dot(twos).rdd.collect())
 
-
 # print(u.dot(a).rdd.collect())
-# print(a.dot(u).rdd.collect())
+# print(u.dot(a).rdd.collect())
+# print(a.dot(a.dot(a.dot(u))).rdd.collect())
 # print(v.dot(u))
 # print(v.outer(u).entries.collect())
 # print(u.op(v).rdd.collect())
@@ -100,15 +103,55 @@ sdi.SparkDependencyInjection.set_spark(spark).set_spark_context(sc)
 # print(v.rdd.collect())
 # print(v.op(ns, 'add').rdd.collect())
 
-init = Initializer101(10,2)
+# sir = ssir.Simple_SIR(
+#     inits = {'S':0.9, 'I':0.1, 'R':0}, 
+#     params = {'beta':0.35, 'gamma':0.07, 'N':6, 't_end':20, 'step_size':1}
+# )
+# sir.run()
+# dr = sir.current_sotw()[1]
+
+# init = Initializer101(
+#     nbr_vertices = 6, 
+#     nbr_edges = 2, 
+#     nbr_infected = int(dr[0]), 
+#     nbr_recovered = int(dr[1])
+# )
+init = Initializer101(
+    nbr_vertices = 20, 
+    nbr_edges = 4, 
+    nbr_infected = 6, 
+    nbr_recovered = 3
+)
 init.initialize_vertices()
 init.initialize_edges(init.vertices)
-network = pn.PandiNetwork(init.vertices, init.edges, 6, 2)
 
-# walker = sw.ScoringWalker(network, params = {'alpha-scaler':-2, 'walker-steps':3})
-# walker.run()
-# print(walker.sotw_scores.rdd.collect())
-# walker.annotate()
+# network = pn.PandiNetwork(init.vertices, init.edges, init.nbr_vertices)
+network = init.toPandiNetwork()
 
-edge_est = see.StochasticEdgeEstimator(network)
+walker = sw.ScoringWalker(
+    network, 
+    params = {'alpha-scaler':-2, 'walker-steps':3}
+)
+
+walker.run()
+walker.annotate((2,1))
+# network.vertices.show()
+# network.edges.show()
+
+edge_est = see.StochasticEdgeEstimator(
+    network
+)
+
 edge_est.run()
+network.vertices.show()
+network.edges.show()
+
+# pandisim = ps.PandiSim(
+#     network = network, 
+#     epi_model = sir, 
+#     scoring_model = walker, 
+#     edge_model = edge_est, 
+#     params = {}
+# )
+
+# pandisim.move()

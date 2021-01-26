@@ -58,15 +58,17 @@ class SparseDistributedMatrix(sdi.SparkDependencyInjection):
     def _dot2(self,v):
         if self.numCols() != v.size:
             raise Exception(f"size mismatch ({self.numRows()},{self.numCols()}) and ({v.size},)")
-        sv = v.toSV()
-        a = self._pre_dot(self, size = sv.size)
-        
-        c = a.map(
-            lambda x: (x[0], x[1].dot(sv))
+        size = v.size
+        sv = v.rdd.map(lambda entry: (1, entry)).groupByKey().map(
+            lambda x: (x[0], Vectors.sparse(size, *list(zip(*sorted(x[1].data, key = lambda x: x[0])))))
+        )
+        a = self._pre_dot(self, size = size)
+
+        c = sv.cartesian(a).map(
+            lambda x: (x[1][0], float(x[0][1].dot(x[1][1])))
         ).filter(
             lambda entry: entry[1] != 0.0
         )
-
         return sdv.SparseDistributedVector(c, self.numRows())
 
     
