@@ -21,13 +21,19 @@ import StochasticEdgeEstimator as see
 
 sys.path.insert(1, '.')
 import SparkDependencyInjection as sdi
+import PandiSimConfigInjection as pci
 import PandiNetwork as pn
 import PandiSim as ps
 
 # os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages graphframes:graphframes:0.8.0-spark3.0-s_2.12 pyspark-shell'
 
 
-spark = SparkSession.builder.master('local').config(key = "spark.default.parallelism", value = 2).getOrCreate()
+spark = SparkSession.builder.master('local')\
+    .config(key = "spark.default.parallelism", value = 4)\
+    .config(key = "spark.driver.memory", value = "4g")\
+    .config(key = "spark.executor.memory", value = "4g")\
+    .config(key = "spark.memory.fraction", value = "0.8")\
+    .getOrCreate()
 # conf=SparkConf.set("spark.default.parallelism", 4)
 sc = spark.sparkContext
 sc.setCheckpointDir("hdfs://namenode:9000/rddch")
@@ -38,6 +44,7 @@ logger.LogManager.getLogger("org"). setLevel( logger.Level.ERROR )
 logger.LogManager.getLogger("akka").setLevel( logger.Level.ERROR )
 
 sdi.SparkDependencyInjection.set_spark(spark).set_spark_context(sc)
+pci.PandiSimConfigInjection.set_write_to("d_pandisim")
 
 # a = SparseDistributedMatrix(sc, sc.parallelize([MatrixEntry(0, 0, 1),MatrixEntry(2, 0, 3),MatrixEntry(4, 0, 1)]), 4, 1).transpose()
 # o = SparseDistributedMatrix.ones(sc, 4).transpose()
@@ -103,25 +110,25 @@ sdi.SparkDependencyInjection.set_spark(spark).set_spark_context(sc)
 # print(v.rdd.collect())
 # print(v.op(ns, 'add').rdd.collect())
 
-# sir = ssir.Simple_SIR(
-#     inits = {'S':0.9, 'I':0.1, 'R':0}, 
-#     params = {'beta':0.35, 'gamma':0.07, 'N':6, 't_end':20, 'step_size':1}
-# )
-# sir.run()
-# dr = sir.current_sotw()[1]
-
-# init = Initializer101(
-#     nbr_vertices = 6, 
-#     nbr_edges = 2, 
-#     nbr_infected = int(dr[0]), 
-#     nbr_recovered = int(dr[1])
-# )
-init = Initializer101(
-    nbr_vertices = 20, 
-    nbr_edges = 4, 
-    nbr_infected = 6, 
-    nbr_recovered = 3
+sir = ssir.Simple_SIR(
+    inits = {'S':0.9, 'I':0.1, 'R':0}, 
+    params = {'beta':0.35, 'gamma':0.07, 'N':6, 't_end':20, 'step_size':1}
 )
+sir.run()
+dr = sir.current_sotw()[1]
+print(dr)
+init = Initializer101(
+    nbr_vertices = 6, 
+    nbr_edges = 2, 
+    nbr_infected = int(dr[0]), 
+    nbr_recovered = int(dr[1])
+)
+# init = Initializer101(
+#     nbr_vertices = 20, 
+#     nbr_edges = 4, 
+#     nbr_infected = 3, 
+#     nbr_recovered = 2
+# )
 init.initialize_vertices()
 init.initialize_edges(init.vertices)
 
@@ -133,25 +140,30 @@ walker = sw.ScoringWalker(
     params = {'alpha-scaler':-2, 'walker-steps':3}
 )
 
-walker.run()
-walker.annotate((2,1))
+# walker.run()
+# walker.annotate((2,1))
 # network.vertices.show()
 # network.edges.show()
 
 edge_est = see.StochasticEdgeEstimator(
-    network
+    network,
+    params = {'SDF': 100, 'alpha': 80, 'beta': 100}
 )
 
-edge_est.run()
-network.vertices.show()
-network.edges.show()
+# edge_est.run()
+# network.vertices.show()
+# network.edges.show(50, False)
 
-# pandisim = ps.PandiSim(
-#     network = network, 
-#     epi_model = sir, 
-#     scoring_model = walker, 
-#     edge_model = edge_est, 
-#     params = {}
-# )
+pandisim = ps.PandiSim(
+    network = network, 
+    epi_model = sir, 
+    scoring_model = walker, 
+    edge_model = edge_est, 
+    params = {'take_screenshots':True}
+)
 
-# pandisim.move()
+pandisim.move()
+pandisim.take_screenshot()
+
+# network.vertices.show()
+# network.edges.show()

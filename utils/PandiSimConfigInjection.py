@@ -11,8 +11,8 @@ class PandiSimConfigInjection(object):
         PandiSimConfigInjection.isInteractive = c
         return PandiSimConfigInjection
     def set_read_from(path):
-        PandiSimConfigInjection.read = path
+        PandiSimConfigInjection.read_from = path
         return PandiSimConfigInjection
     def set_write_to(path):
-        PandiSimConfigInjection.write = path
+        PandiSimConfigInjection.write_to = path
         return PandiSimConfigInjection

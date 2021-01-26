@@ -46,13 +46,21 @@ class ScoringWalker(sm.SCORING_model):
         new_stuff = self.network.vertices.select("id", "health_status").join(vertices, on=['id']).persist(StorageLevel.MEMORY_AND_DISK)
 
         df = new_stuff.filter((F.col('health_status') != F.lit(1.0)) & (F.col('health_status') != F.lit(-1.0)))
-        infected = df.sort(F.col('score').desc()).limit(nbr_infected).persist(StorageLevel.MEMORY_AND_DISK)
-        infected = infected.withColumn('health_status', F.lit(1.0)).withColumn('score', F.lit(1.0))
+        if nbr_infected != 0:
+            infected = df.sort(F.col('score').desc()).limit(nbr_infected).persist(StorageLevel.MEMORY_AND_DISK)
+            infected = infected.withColumn('health_status', F.lit(1.0)).withColumn('score', F.lit(1.0))
+        else:
+            infected = self.spark.createDataFrame(self.sc.emptyRDD(), self.network.get_vertices_schema())
         
-        recovered = new_stuff.filter(F.col('health_status') == F.lit(1.0)).orderBy(F.rand()).limit(nbr_recovered)
-        recovered = recovered.withColumn('health_status', F.lit(-1.0)).withColumn('score', F.lit(0.0)).persist(StorageLevel.MEMORY_AND_DISK)
+        if nbr_recovered != 0:
+            recovered = new_stuff.filter(F.col('health_status') == F.lit(1.0)).orderBy(F.rand()).limit(nbr_recovered)
+            recovered = recovered.withColumn('health_status', F.lit(-1.0)).withColumn('score', F.lit(0.0)).persist(StorageLevel.MEMORY_AND_DISK)
+        else:
+            recovered = self.spark.createDataFrame(self.sc.emptyRDD(), self.network.get_vertices_schema())
+        
 
         annotated = infected.union(recovered).persist(StorageLevel.MEMORY_AND_DISK)
+
         diff = new_stuff.select(F.col('id')).exceptAll(annotated.select(F.col('id')))
         rest = new_stuff.join(diff, on = ['id'], how = 'inner')
 

@@ -22,6 +22,16 @@ class PandiNetwork(sdi.SparkDependencyInjection):
         self.edges = edges
         self.nbr_vertices = nbr_vertices
 
+    def get_vertices_schema(self):
+        vertices_schema = T.StructType(
+            [
+                T.StructField(name = "id", dataType=T.IntegerType(), nullable = False),
+                T.StructField(name = "score", dataType=T.FloatType(), nullable = False),
+                T.StructField(name = "health_status", dataType=T.IntegerType(), nullable = False),
+            ]
+        )
+        return vertices_schema
+
     def toVertices(self, sdv):
         return sdv.rdd.toDF(['id', 'score'])
 
