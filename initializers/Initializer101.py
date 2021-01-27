@@ -21,7 +21,7 @@ class Initializer101(Initializer):
         self.nbr_edges = nbr_edges
         self.nbr_infected = nbr_infected
         self.nbr_recovered = nbr_recovered
-        super().__init__(nbr_vertices, nbr_edges)
+        super().__init__(nbr_vertices, nbr_edges, nbr_infected, nbr_recovered)
     
     def initialize_vertices(self):
         df = self.spark.range(0, self.nbr_vertices, 1).toDF("id").orderBy(F.rand()).persist(StorageLevel.MEMORY_AND_DISK)
