@@ -25,8 +25,12 @@ class ScoringWalker(sm.SCORING_model):
         se.rdd = se.rdd.persist(StorageLevel.MEMORY_AND_DISK)
         D = sdm.SparseDistributedMatrix.diag(se) 
         M = A.dot(D)
-        C = A.dot(se).apply(lambda x: 1/x).outer(sdv.SparseDistributedVector.repeat(1, A.numRows()))
+        b = A.dot(se).apply(lambda x: 1/x)
+        print(b.rdd.collect())
+        C = b.outer(sdv.SparseDistributedVector.repeat(1, A.numRows()))
+        # print(C.entries.collect())
         P = M.multiply(C).transpose()
+        # print(P.entries.collect())
         P.entries = P.entries.persist(StorageLevel.MEMORY_AND_DISK)
 
         # running the walker:

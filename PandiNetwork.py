@@ -35,6 +35,16 @@ class PandiNetwork(sdi.SparkDependencyInjection):
         )
         return vertices_schema
 
+    def get_edges_schema(self):
+        edges_schema = T.StructType(
+            [
+                T.StructField(name = "src", dataType=T.IntegerType(), nullable = False),
+                T.StructField(name = "dst", dataType=T.IntegerType(), nullable = False),
+            ]
+        )
+        return edges_schema
+
+
     def toVertices(self, sdv):
         return sdv.rdd.toDF(['id', 'score'])
 
@@ -73,11 +83,12 @@ class PandiNetwork(sdi.SparkDependencyInjection):
         self.edges.show()
         self.vertices.show()
         edges = self.edges.rdd.map(lambda x: (x.src, x.dst)).collect()
-        vertices = self.vertices.rdd.map(lambda x: (x.id, x.score)).collect()
+        keys,values = tuple(zip(*self.vertices.rdd.map(lambda x: (x.id, x.score)).collect()))
+        print(keys, values, edges)
         G = nx.Graph()
-        G.add_nodes_from([key for key,val in vertices])
+        G.add_nodes_from(keys)
         G.add_edges_from(edges)
         plt.figure(figsize = (15,10))
-        nx.draw(G, pos = nx.spring_layout(G,scale=10), node_size = 800, cmap=plt.get_cmap('viridis'), node_color=[val for key,val in vertices], with_labels=True, font_color='white')
+        nx.draw(G, pos = nx.spring_layout(G,scale=10), node_size = 800, cmap=plt.get_cmap('brg'), node_color=values, with_labels=True, font_color='white')
         plt.show()
   

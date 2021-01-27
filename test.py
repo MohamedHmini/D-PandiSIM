@@ -44,7 +44,7 @@ logger.LogManager.getLogger("org"). setLevel( logger.Level.ERROR )
 logger.LogManager.getLogger("akka").setLevel( logger.Level.ERROR )
 
 sdi.SparkDependencyInjection.set_spark(spark).set_spark_context(sc)
-pci.PandiSimConfigInjection.set_write_to("d_pandisim")
+pci.PandiSimConfigInjection.set_write_to("d_pandisim").set_read_from("d_pandisim")
 
 # a = SparseDistributedMatrix(sc, sc.parallelize([MatrixEntry(0, 0, 1),MatrixEntry(2, 0, 3),MatrixEntry(4, 0, 1)]), 4, 1).transpose()
 # o = SparseDistributedMatrix.ones(sc, 4).transpose()
@@ -74,7 +74,7 @@ pci.PandiSimConfigInjection.set_write_to("d_pandisim")
 
 # print(u.dot(a).rdd.collect())
 # print(u.dot(a).rdd.collect())
-# print(a.dot(a.dot(a.dot(u))).rdd.collect())
+# print(a.dot(u).rdd.collect())
 # print(v.dot(u))
 # print(v.outer(u).entries.collect())
 # print(u.op(v).rdd.collect())
@@ -110,60 +110,76 @@ pci.PandiSimConfigInjection.set_write_to("d_pandisim")
 # print(v.rdd.collect())
 # print(v.op(ns, 'add').rdd.collect())
 
-sir = ssir.Simple_SIR(
-    inits = {'S':0.9, 'I':0.1, 'R':0}, 
-    params = {'beta':0.35, 'gamma':0.07, 'N':6, 't_end':20, 'step_size':1}
-)
-sir.run()
-dr = sir.current_sotw()[1]
+# sir = ssir.Simple_SIR(
+#     inits = {'S':0.9, 'I':0.1, 'R':0}, 
+#     params = {'beta':0.35, 'gamma':0.07, 'N':6, 't_end':20, 'step_size':1}
+# )
+# sir.run()
+# dr = sir.current_sotw()[1]
 
-init = Initializer101(
-    nbr_vertices = 6, 
-    nbr_edges = 2, 
-    nbr_infected = int(dr[0]), 
-    nbr_recovered = int(dr[1])
-)
+# init = Initializer101(
+#     nbr_vertices = 6, 
+#     nbr_edges = 2, 
+#     nbr_infected = int(dr[0]), 
+#     nbr_recovered = int(dr[1])
+# )
 # init = Initializer101(
 #     nbr_vertices = 20, 
 #     nbr_edges = 4, 
 #     nbr_infected = 3, 
 #     nbr_recovered = 2
 # )
-init.initialize_vertices()
-init.initialize_edges(init.vertices)
+# init.initialize_vertices()
+# init.initialize_edges(init.vertices)
 
 # network = pn.PandiNetwork(init.vertices, init.edges, init.nbr_vertices)
-network = init.toPandiNetwork()
+# network = init.toPandiNetwork()
 
-walker = sw.ScoringWalker(
-    network, 
-    params = {'alpha-scaler':-2, 'walker-steps':3}
-)
+# walker = sw.ScoringWalker(
+#     network, 
+#     params = {'alpha-scaler':-2, 'walker-steps':3}
+# )
 
 # walker.run()
 # walker.annotate((2,1))
 # network.vertices.show()
 # network.edges.show()
 
-edge_est = see.StochasticEdgeEstimator(
-    network,
-    params = {'SDF': 100, 'alpha': 80, 'beta': 100}
-)
+# edge_est = see.StochasticEdgeEstimator(
+#     network,
+#     params = {'SDF': 100, 'alpha': 80, 'beta': 100}
+# )
 
 # edge_est.run()
 # network.vertices.show()
 # network.edges.show(50, False)
 
+# pandisim = ps.PandiSim(
+#     network = network, 
+#     epi_model = sir, 
+#     scoring_model = walker, 
+#     edge_model = edge_est, 
+#     params = {'take_screenshots':False}
+# )
+
+# pandisim.move()
+# pandisim.take_screenshot()
+
+# network.vertices.show()
+# network.edges.show()
+
+
+
+network = pn.PandiNetwork(None,None,6)
+
 pandisim = ps.PandiSim(
     network = network, 
-    epi_model = sir, 
-    scoring_model = walker, 
-    edge_model = edge_est, 
+    epi_model = None, 
+    scoring_model = None, 
+    edge_model = None, 
     params = {'take_screenshots':False}
 )
 
-pandisim.move()
-pandisim.take_screenshot()
-
+pandisim.read_state(1)
 network.vertices.show()
 network.edges.show()
