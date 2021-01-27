@@ -1,0 +1,69 @@
+version: "3"
+
+services:
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop2.7.4-java8
+    container_name: namenode
+    #volumes:
+    #  - hadoop_namenode:/hadoop/dfs/name
+    environment:
+      - CLUSTER_NAME=test
+    env_file:
+      - ./hadoop.env
+    ports:
+      - 8020:8020
+      - 50070:50070
+
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop2.7.4-java8
+    container_name: datanode
+    #volumes:
+    #  - hadoop_datanode:/hadoop/dfs/data
+    environment:
+      SERVICE_PRECONDITION: namenode:50070
+    env_file:
+      - ./hadoop.env
+    ports:
+      - 50075:50075
+
+  resourcemanager:
+    image: bde2020/hadoop-resourcemanager:2.0.0-hadoop2.7.4-java8
+    container_name: resourcemanager
+    environment:
+      SERVICE_PRECONDITION: namenode:50070 datanode:50075
+    env_file:
+      - ./hadoop.env
+    ports:
+      - 8088:8088
+      - 8032:8032
+
+  nodemanager1:
+    image: bde2020/hadoop-nodemanager:2.0.0-hadoop2.7.4-java8
+    container_name: nodemanager
+    environment:
+      SERVICE_PRECONDITION: namenode:50070 datanode:50075 resourcemanager:8088
+    env_file:
+      - ./hadoop.env
+    depends_on:
+      - namenode
+      - resourcemanager
+    ports:
+      - 8042:8042
+
+  pyspark-jupyter:
+      image: jupyter/pyspark-notebook:latest
+      container_name: pyspark-jupyter
+      environment:
+          GRANT_SUDO: "yes"
+      volumes: 
+          - $PWD/:/home/jovyan/work
+      ports:
+          - 8888:8888
+          - 7077:7077
+          - 8080:8080
+      depends_on:
+          - nodemanager1 
+
+
+
+
