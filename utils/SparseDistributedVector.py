@@ -38,7 +38,7 @@ class SparseDistributedVector(sdi.SparkDependencyInjection):
             raise Exception(f"size mismatch ({self.size},) and ({S.numRows()},{S.numCols()})")
         size = self.size
         v = self.rdd.map(lambda entry: (1, entry)).groupByKey().map(
-            lambda x: (x[0], Vectors.sparse(size, *list(zip(*sorted(x[1].data, key = lambda x: x[0])))))
+            lambda x: (x[0], Vectors.sparse(size, *list(zip(*sorted(x[1].data, key = lambda y: y[0])))))
         )
         a = self._pre_dot(S)
         c = v.cartesian(a).map(

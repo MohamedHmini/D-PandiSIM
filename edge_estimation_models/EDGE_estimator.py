@@ -11,11 +11,13 @@ import SparkDependencyInjection as sdi
 
 
 class EDGE_estimator(sdi.SparkDependencyInjection, metaclass=abc.ABCMeta):
-    def __init__(self, network, params):
+    def __init__(self, name, network, params):
+        self.name = name
         self.network = network
         self.params = params
         super().__init__()
         
+
     @abc.abstractmethod
     def run(self):
         pass

@@ -116,7 +116,7 @@ sir = ssir.Simple_SIR(
 )
 sir.run()
 dr = sir.current_sotw()[1]
-print(dr)
+
 init = Initializer101(
     nbr_vertices = 6, 
     nbr_edges = 2, 
@@ -159,11 +159,11 @@ pandisim = ps.PandiSim(
     epi_model = sir, 
     scoring_model = walker, 
     edge_model = edge_est, 
-    params = {'take_screenshots':True}
+    params = {'take_screenshots':False}
 )
 
 pandisim.move()
 pandisim.take_screenshot()
 
-# network.vertices.show()
-# network.edges.show()
+network.vertices.show()
+network.edges.show()

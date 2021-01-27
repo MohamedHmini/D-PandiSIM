@@ -26,12 +26,13 @@ class Initializer101(Initializer):
     def initialize_vertices(self):
         df = self.spark.range(0, self.nbr_vertices, 1).toDF("id").orderBy(F.rand()).persist(StorageLevel.MEMORY_AND_DISK)
         # df = df.withColumn('score', F.when(F.rand() >= F.lit(self.prob_infection), F.lit(1.0)).otherwise(F.lit(0.0)))
-        infected = df.limit(self.nbr_infected).withColumn('score', F.lit(1.0))
+        infected = df.limit(self.nbr_infected).withColumn('health_status', F.lit(1.0))
         recovered = df.select('id').exceptAll(infected.select('id')).limit(self.nbr_recovered)
-        recovered = recovered.withColumn('score', F.lit(-1.0))
-        total = infected.union(recovered).persist(StorageLevel.MEMORY_AND_DISK)
-        rest = df.select('id').exceptAll(total.select('id')).withColumn('score', F.lit(0.0))
-        self.vertices = rest.union(total).withColumn('health_status', F.col('score')).orderBy('id').persist(StorageLevel.MEMORY_AND_DISK)
+        recovered = recovered.withColumn('health_status', F.lit(-1.0))
+        total = infected.unionAll(recovered).persist(StorageLevel.MEMORY_AND_DISK)
+        rest = df.select('id').exceptAll(total.select('id')).withColumn('health_status', F.lit(0.0))
+        self.vertices = rest.unionAll(total).withColumn('score', F.when(F.col('health_status') == F.lit(-1.0), F.lit(0.0)).otherwise(F.col('health_status')))\
+            .select('id', 'score', 'health_status').orderBy('id').persist(StorageLevel.MEMORY_AND_DISK)
         return self.vertices
     
     def initialize_edges(self, vertices):

@@ -30,7 +30,7 @@ class SparseDistributedMatrix(sdi.SparkDependencyInjection):
             lambda entry: (entry.i, (entry.j, entry.value)) if by == 'row' else (entry.j, (entry.i, entry.value))
         ).groupByKey() \
         .map(
-            lambda x: (x[0], Vectors.sparse(size, *list(zip(*sorted(x[1].data, key = lambda x: x[0])))))
+            lambda x: (x[0], Vectors.sparse(size, *list(zip(*sorted(x[1].data, key = lambda y: y[0])))))
         )
         return a
 
@@ -60,7 +60,7 @@ class SparseDistributedMatrix(sdi.SparkDependencyInjection):
             raise Exception(f"size mismatch ({self.numRows()},{self.numCols()}) and ({v.size},)")
         size = v.size
         sv = v.rdd.map(lambda entry: (1, entry)).groupByKey().map(
-            lambda x: (x[0], Vectors.sparse(size, *list(zip(*sorted(x[1].data, key = lambda x: x[0])))))
+            lambda x: (x[0], Vectors.sparse(size, *list(zip(*sorted(x[1].data, key = lambda y: y[0])))))
         )
         a = self._pre_dot(self, size = size)
 

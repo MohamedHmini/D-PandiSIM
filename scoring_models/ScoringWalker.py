@@ -39,8 +39,8 @@ class ScoringWalker(sm.SCORING_model):
 
     
     def annotate(self, sotw = (0,0)):
-        nbr_infected = sotw[0]
-        nbr_recovered = sotw[1]
+        nbr_infected = int(sotw[0])
+        nbr_recovered = int(sotw[1])
 
         vertices = self.network.toVertices(self.sotw_scores)
         new_stuff = self.network.vertices.select("id", "health_status").join(vertices, on=['id']).persist(StorageLevel.MEMORY_AND_DISK)
@@ -59,15 +59,15 @@ class ScoringWalker(sm.SCORING_model):
             recovered = self.spark.createDataFrame(self.sc.emptyRDD(), self.network.get_vertices_schema())
         
 
-        annotated = infected.union(recovered).persist(StorageLevel.MEMORY_AND_DISK)
+        annotated = infected.unionAll(recovered).persist(StorageLevel.MEMORY_AND_DISK)
 
         diff = new_stuff.select(F.col('id')).exceptAll(annotated.select(F.col('id')))
         rest = new_stuff.join(diff, on = ['id'], how = 'inner')
 
-        results = rest.union(annotated).select('id', 'score', 'health_status').persist(StorageLevel.MEMORY_AND_DISK)
+        results = rest.unionAll(annotated).select('id', 'score', 'health_status').persist(StorageLevel.MEMORY_AND_DISK)
         diff = self.network.vertices.select(F.col('id')).exceptAll(results.select(F.col('id')))
         rest = self.network.vertices.join(diff, on = ['id'], how = 'inner').select('id', 'score', 'health_status')
-        self.network.vertices = rest.union(results).orderBy('id').persist(StorageLevel.MEMORY_AND_DISK)
+        self.network.vertices = rest.unionAll(results).orderBy('id').persist(StorageLevel.MEMORY_AND_DISK)
 
         # # remove the recovered vertices' edges
         recovered_src = self.network.edges.select('src').exceptAll(recovered.select('id')).join(self.network.edges, on =['src'])

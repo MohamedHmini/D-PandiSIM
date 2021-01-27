@@ -29,10 +29,11 @@ class Simple_SIR(EPI_model):
         return Y   # For odeint 
     
     def run(self):
+        self.step = 0
         INPUT = tuple(self.inits.values())
         t_range = np.arange(0, self.params['t_end'] + self.params['step_size'], self.params['step_size'])
-        self.all_sotw = spi.odeint(self.diff_eqs,INPUT, t_range)
-        self.all_sotw = np.round(self.params['N']*self.all_sotw)
+        self.all_sotw_vals = np.array(spi.odeint(self.diff_eqs,INPUT, t_range))
+        self.all_sotw = np.round(self.params['N']*self.all_sotw_vals)
         self.dr = (-np.vstack(([self.params['N'],0,0], self.all_sotw[:-1,:])) + self.all_sotw)[:,1:]
         self.dr[self.dr < 0] = 0
         
@@ -53,9 +54,14 @@ class Simple_SIR(EPI_model):
         self.re_init(inits = {'S':S, 'I':I, 'R':R}, params = params)
         self.run()
         plt.figure(figsize = (15,10))
-        lines = plt.plot(self.all_sotw)
+        plt.plot(self.all_sotw_vals[:,0], label = 'susceptibles')
+        plt.plot(self.all_sotw_vals[:,1], label = 'infected')
+        plt.plot(self.all_sotw_vals[:,2], label = 'removed')
+        mx = round(np.max(self.all_sotw_vals[:,1]), 3)
+        plt.axhline(y=mx, color='r', linestyle='-', label = f"maximum propotion of infected ppl : {mx}")
         plt.title(self.name)
-        plt.legend(iter(lines), ['susceptibles', 'infected', 'removed'])
+        plt.legend()
+        # plt.legend(iter(lines), ['susceptibles', 'infected', 'removed'])
     
     def interact(self):
         interact(self._interact, beta=(0, 0.5, 0.01), gamma = (0, 0.5, 0.01), S = (0, 1, 0.1), I = (0, 1, 0.1), R = (0, 1, 0.1))

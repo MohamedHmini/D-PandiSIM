@@ -4,6 +4,9 @@ import pyspark.sql.functions as F
 from pyspark.sql.window import Window
 from pyspark import StorageLevel
 
+import networkx as nx
+import numpy as np
+import matplotlib.pyplot as plt
 
 from pyspark.mllib.linalg.distributed import MatrixEntry
 
@@ -65,3 +68,16 @@ class PandiNetwork(sdi.SparkDependencyInjection):
         size = truncated_vertices.count()
         self.edges_sdm = sdm.SparseDistributedMatrix(entries, size, size)
         return self.edges_sdm
+
+    def interact(self):
+        self.edges.show()
+        self.vertices.show()
+        edges = self.edges.rdd.map(lambda x: (x.src, x.dst)).collect()
+        vertices = self.vertices.rdd.map(lambda x: (x.id, x.score)).collect()
+        G = nx.Graph()
+        G.add_nodes_from([key for key,val in vertices])
+        G.add_edges_from(edges)
+        plt.figure(figsize = (15,10))
+        nx.draw(G, pos = nx.spring_layout(G,scale=10), node_size = 800, cmap=plt.get_cmap('viridis'), node_color=[val for key,val in vertices], with_labels=True, font_color='white')
+        plt.show()
+  
