@@ -31,13 +31,47 @@ spark = SparkSession.builder.master('local')\
     .getOrCreate()
 ```
 
+we should also make sure that the dependency injection classes are filled with necessary data since all of the classes in the package depends on them, note that PandiSim writes and reads from the **hdfs** file system.
+
+```python
+sdi.SparkDependencyInjection\
+  .set_spark(spark)
+  .set_spark_context(sc)
+  
+pci.PandiSimConfigInjection\
+  .set_write_to("d_pandisim")\
+  .set_read_from('d_pandisim')
+```
+
 ## III. Initializer : 
 
 the initializer used in our example is a simple one which depends on parameters such as the number of infected/recovered people as an initial state, the simple initializer is found in [Initializer101.py](./initializers/Initializer101.py).
 
+below is an example of executing an initializer, of course in we would want to consider the epidemic model to then perfectly initialize the network, you may refer to the demo to learn more.
+```python
+init = Initializer101(
+    nbr_vertices = N, 
+    nbr_edges = 9, 
+    nbr_infected = 2, 
+    nbr_recovered = 1
+)
+
+init.initialize_vertices()
+init.initialize_edges(init.vertices)
+network = init.toPandiNetwork()
+```
+
 ## IV. Epidemic Model : 
 
 we may use complicated and very sophisticated Epidemic models to avoid generalization and capture the target epidemic (e.g: like the COVID19 pandemic), but in our example we use a simple SIR model developed by **Dr. Ronald Ross**, [Simple_SIR.py](./epi_models/Simple_SIR.py).
+
+the Simple SIR model depends on many parameters for this reason we will see later how to interact with the model graphically to have a more visual understanding of what is happening.
+```python
+sir = ssir.Simple_SIR(
+    inits = {'S':0.8, 'I':0.2, 'R':0}, 
+    params = {'beta':0.45, 'gamma':0.05, 'N':N, 't_end':20, 'step_size':1}
+)
+```
 
 ## V. Scoring Model : 
 
@@ -47,7 +81,15 @@ to boil it down to simple terms, and since we want to score the nodes based on t
 
 to avoid the problem of self-loops we create artifical edges between the self-loop node and the rest of the network to enable the spread of importance of that node and thus to solve the issue of a deadend.
 
-the notebook explaining the Scoring Walker model can be found in [here](explaining_the_scoring_walker_model.ipynb)
+the notebook explaining the Scoring Walker model can be found in [here](explaining_the_scoring_walker_model.ipynb)<br>.
+the Scoring Walker model can be found in [ScoringWalker.py](./scoring_models/ScoringWalker.py), the model accepts the network as well as the alpha scaler and the walker steps (number of iterations of the markov chain).
+
+```python
+walker = sw.ScoringWalker(
+    network, 
+    params = {'alpha-scaler':-2, 'walker-steps':3}
+)
+```
 
 let's start by formulating our model, the starting point is always the current nodes scores vector : 
 <p align="center">
@@ -108,5 +150,53 @@ the generated new scores can now be considered instead of the old ones, we keep 
 
 ## VI. Edge Estimation Model : 
 
-the last but not least model is the edge estimator which can be used to draw new edges between different nodes in each iteration, the example we used is very simple which doesn't incoporate information from the existint network but instead it only relies on a **bernoulli** distribution with a **beta** prior.
+the last but not least model is the edge estimator which can be used to draw new edges between different nodes in each iteration, the example we used is very simple which doesn't incoporate information from the existint network but instead it only relies on a **bernoulli** distribution with a **beta** prior, the stochastic edge estimator can be found in [StochasticEdgeEstimator.py](./edge_estimation_models/StochasticEdgeEstimator.py).
 
+the edge estimator object also has an interactive mode which we can use later.
+
+```python
+edge_est = see.StochasticEdgeEstimator(
+    network = network,
+    params = {'SDF': 70, 'alpha': 30, 'beta': 75}
+)
+```
+
+<p align="center">
+  <img width = width="300" height="120" src="./readme_assets/15.jpg">
+</p>
+
+## VII. PandiSim : 
+
+the pandisim is the main object which executes the simulation, it depends on the other models which should be initiated and parametrized, then the pandisim accepts the pandinetwork and the other 3 models as well as some parameters, the take_screenshots allows the saving of each iteration's data, while the destray parameter allows to destry the network and recreate by reading from the written data in each iteration.
+```python
+pandisim = ps.PandiSim(
+    network = network, 
+    epi_model = sir, 
+    scoring_model = walker, 
+    edge_model = edge_est, 
+    params = {'take_screenshots':True, 'destroy':True}
+)
+```
+
+then we either use the run method to let it simulate the pandemic or we use the move method to do it ourselves manually, note that the run method accepts the perc parameter which denotes the percentage of the simulation which should be considered.
+```python
+pandisim.run(perc = 0.4)
+```
+```python
+pandisim.move()
+pandisim.take_screenshot()
+```
+
+to efficiently choose the parameters of the epidemic model as well as the edge estimator we can go through the interactive mode : 
+```python
+sir.interact()
+```
+![](./readme_assets/16.gif)
+
+```python
+edge_est.interact()
+```
+![](./readme_assets/17.gif)
+
+
+**MOHAMED-HMINI** 2021
