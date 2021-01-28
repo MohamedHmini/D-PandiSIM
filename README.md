@@ -46,3 +46,43 @@ this model is very essential and can necessitates heavy computation, in our exam
 to boil it down to simple terms, and since we want to score the nodes based on the previous scores, we will let the flow of importance go from the highly scored to the least scored nodes, in other words, nodes who have connections with highly scored nodes (probably infected) will get a score increase in the next iteration, conversely nodes with connections with least scored nodes (probably not infected) will get a decrease or a slight increase to their scores in the next itaration.
 
 to avoid the problem of self-loops we create artifical edges between the self-loop node and the rest of the network to enable the spread of importance of that node and thus to solve the issue of a deadend.
+
+the notebook explaining the Scoring Walker model can be found in [here](explaining_the_scoring_walker_model.ipynb)
+
+let's start by formulating our model, the starting point is always the current nodes scores vector : 
+<p align="center">
+  <img src="./readme_assets/5.jpg">
+</p>
+and since our goal is to build a stochastic matrix to be used in the markov chain and then to rescore the nodes we will need to use a probability distribution so that the outgoing nodes' values sum to one, for this sake we chose to use the **softmax** probability distribution.
+<p align="center">
+  <img src="./readme_assets/14.jpg">
+</p>
+this is tedious to do be calculated for each node, so we are going to represent the whole procedure in terms of matrix operations, first we should already have the incidence matrix **A** which contains the real edges as well as the artificial edges (to avoid deadends / to consider self-loops), then we can calculate the matrix **M** which contains for each row (node outgoing links) the current node's transformed score.
+<p align="center">
+  <img src="./readme_assets/9.jpg">
+</p>
+<p align="center">
+  <img src="./readme_assets/6.jpg">
+</p>
+<p align="center">
+  <img src="./readme_assets/7.jpg">
+</p>
+<p align="center">
+  <img src="./readme_assets/8.jpg">
+</p>
+then to calculate the second part of the softmax (the fractions) we just sum up each nodes out going links scaled values then we calculate the matrix **C** by performing an outerproduct to facilitate the element-wise multiplicaiton later.
+<p align="center">
+  <img src="./readme_assets/10.jpg">
+</p>
+the final step in constructing the stochastic matrix **P** is by performing the element-wise multiplication.
+<p align="center">
+  <img src="./readme_assets/11.jpg">
+</p>
+after acquiring the stochastic matrix now we can use the markov chain property of stationary processes and perform a finite set of transformations to find the ranking vector **r**.
+<p align="center">
+  <img src="./readme_assets/12.jpg">
+</p>
+this vector stores important information about the nodes, it can tell us by how much we should increase the score of each node in the network.
+<p align="center">
+  <img src="./readme_assets/13.jpg">
+</p>
