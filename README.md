@@ -20,6 +20,19 @@ these four subcomponents can be anything as long as they can be executed in harm
 
 the project is achieved using docker containers, we use bde2020 hadoop images as well as the jupyter/pyspark-notebook which can be both found in the docker compose file in [docker-compose.yml](./docker-compose.yml), the user may re-configure the containers to adapt the environment to his planned project.
 
+first and formost to run the docker containers and download the needed images run the following command : 
+```shell
+docker-compose docker-compose.yml up -d
+```
+if you need to enter the jupyter/pyspark-notebook container for further configuration you may use : 
+```shell
+docker exec -it -e GRANT_SUDO=yes --user root pyspark-jupyter bash
+```
+as for the hadoop : 
+```shell
+docker exec -it bde2020/hadoop-datanode bash
+```
+
 before running the application one should make sure that the memory management configurations are suitable for the work to be done, specifying the number of partitions as well as the memory fraction is crucial for better performance, an example is given below, in the real world we would want to run the application in a distributed environment and not in a local machine.
 
 ```python
