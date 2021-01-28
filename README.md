@@ -180,7 +180,7 @@ edge_est = see.StochasticEdgeEstimator(
 
 ## VII. PandiSim : 
 
-the pandisim is the main object which executes the simulation, it depends on the other models which should be initiated and parametrized, then the pandisim accepts the pandinetwork and the other 3 models as well as some parameters, the take_screenshots allows the saving of each iteration's data, while the destray parameter allows to destry the network and recreate by reading from the written data in each iteration.
+the pandisim is the main object which executes the simulation, it depends on the other models which should be initiated and parametrized, then the pandisim accepts the pandinetwork and the other 3 models as well as some parameters, the take_screenshots allows the saving of each iteration's data, while the destray parameter allows to destry the network and recreate by reading from the written data in each iteration, the PandiSim and the PandiNetwork objects can be found in [PandiSim.py](./PandiSim.py) and [PandiNetwork](./PandiNetwork.py) respectively.
 ```python
 pandisim = ps.PandiSim(
     network = network, 
