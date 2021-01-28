@@ -1,6 +1,6 @@
 # D-PandiSIM : Distributed Pandemics Simulator 
+[![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
 
-**author : MOHAMED HMINI**<br>
 **status : ( debugging phase )**
 
 ## I. Introduction : 
