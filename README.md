@@ -211,5 +211,22 @@ edge_est.interact()
 ```
 ![](./readme_assets/17.gif)
 
+in order to visualize the PandiNetwork we can use the interactive mode of the network's object, let's have a look at a network after 2 iterations : 
+
+```python
+network.interact()
+```
+
+![](./readme_assets/20.jpg)
+
+we can print the nodes' scores by using the show() method of spark's dataframes : 
+
+```python
+network.vertices.show()
+```
+
+![](./readme_assets/21.jpg)
+
+
 
 **MOHAMED-HMINI** 2021
