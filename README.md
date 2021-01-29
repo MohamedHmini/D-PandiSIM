@@ -56,7 +56,13 @@ pci.PandiSimConfigInjection\
   .set_read_from('d_pandisim')
 ```
 
-## III. Initializer : 
+## III. Utils : 
+
+unfortunately, spark doesn't offer a distributed sparse matrix operations module, they are either not sufficient or not implemented in the first place, like in the case of CoordinateMatrix, which stores the matrix in the COO format given that the matrix is sparse, this object isn't able to perform basic matrix operations such as distributed dot products or element-wise arithmetic operations, for these reasons we have created our own utils package which has the a distributed sparse matrix module as well as a vector version of it, [SparseDistributedMatrix.py](https://github.com/MohamedHmini/D-PandiSIM/blob/main/utils/SparseDistributedMatrix.py) and [SparseDistributedVector.py](https://github.com/MohamedHmini/D-PandiSIM/blob/main/utils/SparseDistributedVector.py) respectively.
+
+the package can be enhanced and re-built for optimization purposes as it can be replaced since this package which built for an on the fly usage and implementation of the end-goal algorithms.
+
+## IV. Initializer : 
 
 the initializer used in our example is a simple one which depends on parameters such as the number of infected/recovered people as an initial state, the simple initializer is found in [Initializer101.py](./initializers/Initializer101.py).
 
@@ -74,7 +80,7 @@ init.initialize_edges(init.vertices)
 network = init.toPandiNetwork()
 ```
 
-## IV. Epidemic Model : 
+## V. Epidemic Model : 
 
 we may use complicated and very sophisticated Epidemic models to avoid generalization and capture the target epidemic (e.g: like the COVID19 pandemic), but in our example we use a simple SIR model developed by **Dr. Ronald Ross**, [Simple_SIR.py](./epi_models/Simple_SIR.py).
 
@@ -86,7 +92,7 @@ sir = ssir.Simple_SIR(
 )
 ```
 
-## V. Scoring Model : 
+## VI. Scoring Model : 
 
 this model is very essential and can necessitates heavy computation, in our example we developed our own version of the pagerank algorithm making it more suitable for such a task, the main idea is to walk the network randomly for a finite number of iterations to deduce the probabilities of transition from one node to another based on the initial edges probabilities (hence the use of the markov chain).
 
@@ -161,7 +167,7 @@ the generated new scores can now be considered instead of the old ones, we keep 
   <img width = "370" height = "300" src="./readme_assets/4.jpg">
 </p>
 
-## VI. Edge Estimation Model : 
+## VII. Edge Estimation Model : 
 
 the last but not least model is the edge estimator which can be used to draw new edges between different nodes in each iteration, the example we used is very simple which doesn't incoporate information from the existint network but instead it only relies on a **bernoulli** distribution with a **beta** prior, the stochastic edge estimator can be found in [StochasticEdgeEstimator.py](./edge_estimation_models/StochasticEdgeEstimator.py).
 
@@ -178,7 +184,7 @@ edge_est = see.StochasticEdgeEstimator(
   <img width = width="300" height="120" src="./readme_assets/15.jpg">
 </p>
 
-## VII. PandiSim : 
+## VIII. PandiSim : 
 
 the pandisim is the main object which executes the simulation, it depends on the other models which should be initiated and parametrized, then the pandisim accepts the pandinetwork and the other 3 models as well as some parameters, the take_screenshots allows the saving of each iteration's data, while the destray parameter allows to destry the network and recreate by reading from the written data in each iteration, the PandiSim and the PandiNetwork objects can be found in [PandiSim.py](./PandiSim.py) and [PandiNetwork.py](./PandiNetwork.py) respectively.
 ```python
