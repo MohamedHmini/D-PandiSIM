@@ -11,10 +11,9 @@ import SparkDependencyInjection as sdi
 class SparseDistributedVector(sdi.SparkDependencyInjection):
 
     # default shape of the vector is (N by 1)
-    def __init__(self, rdd, size, transposed = False):
+    def __init__(self, rdd, size):
         self.rdd = rdd
         self.size = size
-        self.transposed = transposed
         
     def _pre_dot(self, A):
         size = self.size
