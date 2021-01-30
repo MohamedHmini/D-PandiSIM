@@ -26,7 +26,7 @@ class ScoringWalker(sm.SCORING_model):
         D = sdm.SparseDistributedMatrix.diag(se) 
         M = A.dot(D)
         b = A.dot(se).apply(lambda x: 1/x)
-        print(b.rdd.collect())
+#         print(b.rdd.collect())
         C = b.outer(sdv.SparseDistributedVector.repeat(1, A.numRows()))
         # print(C.entries.collect())
         P = M.multiply(C).transpose()
