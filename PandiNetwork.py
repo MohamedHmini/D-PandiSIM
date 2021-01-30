@@ -84,7 +84,7 @@ class PandiNetwork(sdi.SparkDependencyInjection):
         self.vertices.show()
         edges = self.edges.rdd.map(lambda x: (x.src, x.dst)).collect()
         keys,values = tuple(zip(*self.vertices.rdd.map(lambda x: (x.id, x.score)).collect()))
-        print(keys, values, edges)
+#         print(keys, values, edges)
         G = nx.Graph()
         G.add_nodes_from(keys)
         G.add_edges_from(edges)
