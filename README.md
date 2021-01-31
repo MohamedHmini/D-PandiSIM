@@ -3,6 +3,38 @@
 
 **status : ( debugging phase )**
 
+## Repo Tree : 
+
+```bash
+├── PandiNetwork.py
+├── PandiSim.py
+├── README.md
+├── demo.ipynb
+├── test.py
+├── docker-compose.yml
+├── edge_estimation_models
+│   ├── EDGE_estimator.py
+│   └── StochasticEdgeEstimator.py
+├── epi_models
+│   ├── EPI_model.py
+│   └── Simple_SIR.py
+├── explaining_the_scoring_walker_model.ipynb
+├── initializers
+│   ├── Initializer.py
+│   └── Initializer101.py
+├── readme_assets
+|   ...
+├── scoring_models
+│   ├── SCORING_model.py
+│   └── ScoringWalker.py
+└── utils
+    ├── PandiSimConfigInjection.py
+    ├── SparkDependencyInjection.py
+    ├── SparseDistributedMatrix.py
+    └── SparseDistributedVector.py
+```
+
+
 ## I. Introduction : 
 
 the main goal of d-pandisim is to generate pandemics data using big-data technologies, so in essence d-pandisim is a package built on top of pyspark since the code is written in python, as we well know the contact-tracing data with the growth of privacy concerns is usually not accessible or stored in the first place, the thing which makes it harder and inconceivable to make good modeling of the state of the world pandemics, fortunately we have computers and by the help of distributed systems we can more or less execute complex iterative methods to simulate the spread of these illness with a good degree of accuracy depending on the used sub-models.
