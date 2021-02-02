@@ -94,7 +94,7 @@ unfortunately, spark doesn't offer a distributed sparse matrix operations module
 
 the package can be enhanced and re-built for optimization purposes as it can be replaced since this package was built for an on the fly usage and implementation of the end-goal algorithms and it's not the goal per-se.
 
-the use of graphframes package in this project was meaningless since most of the functionalities we are interested in aren't provided (e.g: generate the graph's incidence matrix using a sparse distributed matrix which provides distributed matrix operations), the ScoringWalker algorithm used later can be considered as a generalization of the vanilla pagerank algorithm, the only difference is that we have an augmented notion of importance (which is higher whenever the flow is going from lower scored nodes to higher scored nodes).
+the use of graphframes package in this project was meaningless since most of the functionalities we are interested in aren't provided (e.g: generate the graph's incidence matrix using a sparse distributed matrix which provides distributed matrix operations), the ScoringWalker algorithm used later can be considered as a generalization of the vanilla pagerank algorithm, the only difference is that we have an augmented notion of importance (which is higher whenever the flow is going from lower scored nodes to higher scored nodes), thus the ScoringWalker is exactly the PageRank when all of the nodes in the network have the same score.
 
 ## IV. Initializer : 
 
